@@ -4,9 +4,9 @@
 ## Repetition Killed the Cat
 Releasing a new version of your killer Node lib looks like this:
 
-1. bump the version in your `package.json` file.
-2. stage the package.json file's change.
-3. commit that change with a message like "release 0.6.22".
+1. bump the version in your `package.json` and/or `component.json` files.
+2. stage the update file changes.
+3. commit the changes with a message like "release 0.6.22".
 4. create a new git tag for the release. 
 5. push the changes out to github.
 6. also push the new tag out to github.
@@ -61,7 +61,8 @@ You can disable any of the steps if you want, by adding this to your Gruntfile:
   release: {
     options: {
       bump: false, //default: true
-      file: 'component.json', //default: package.json
+      file: 'altpkg.json', //default: package.json
+      files: ['test-component.json','other.json'], //default: ['component.json']
       add: false, //default: true
       commit: false, //default: true
       tag: false, //default: true
@@ -74,7 +75,7 @@ You can disable any of the steps if you want, by adding this to your Gruntfile:
     }
   }
 ```
-For node libs, leave `file` option blank. For bower components, set it to `component.json` or whatever you've set your bower config file to be.
+For node libs and/or bower components, you can usually leave the `file` and `files` options blank.
 
 ## Credits
 Inspired by Vojta Jina's [grunt-bump](https://github.com/vojtajina/grunt-bump).

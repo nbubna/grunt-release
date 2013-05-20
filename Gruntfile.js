@@ -6,7 +6,8 @@ module.exports = function(grunt){
     release: {
       options: {
         // bump: true,
-        // file: 'test-component.json',
+        // file: 'alt-package.json',
+        // files: ['test-component.json'],
         // add: false,
         // commit: false,
         // tag: false,

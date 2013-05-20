@@ -15,6 +15,7 @@ module.exports = function(grunt){
     var options = this.options({
       bump: true,
       file: grunt.config('pkgFile') || 'package.json',
+      files: ['component.json'],
       add: true,
       commit: true,
       tag: true,
@@ -22,12 +23,13 @@ module.exports = function(grunt){
       pushTags: true,
       npm : true
     });
+    options.files.unshift(options.file);
 
     var tagName = grunt.config.getRaw('release.options.tagName') || '<%= version %>';
     var commitMessage = grunt.config.getRaw('release.options.commitMessage') || 'release <%= version %>';
     var tagMessage = grunt.config.getRaw('release.options.tagMessage') || 'version <%= version %>';
 
-    var config = setup(options.file, type);
+    var config = setup(options.files, type);
     var templateOptions = {
       data: {
         version: config.newVersion
@@ -42,19 +44,34 @@ module.exports = function(grunt){
     if (options.pushTags) pushTags(config);
     if (options.npm) publish(config);
 
-    function setup(file, type){
-      var pkg = grunt.file.readJSON(file);
-      var newVersion = pkg.version = semver.inc(pkg.version, type || 'patch');
-      return {file: file, pkg: pkg, newVersion: newVersion};
+    function setup(file, files, type){
+      var map = {};
+      var newVersion;
+      files.forEach(function(file) {
+        try {
+          var json = grunt.file.readJSON(file);
+          if (json) {
+            map[file] = json;
+            json.version = semver.inc(json.version, type || 'patch');
+            if (!newVersion) newVersion = json.version;
+          }
+        } catch (e) {
+          grunt.log.writeln('Did not find "'+file+'".');
+        }
+      });
+      return {files: map, newVersion: newVersion};
     }
 
     function add(config){
-      run('git add ' + config.file);
+      for (var file in config.files) {
+        run('git add ' + file);
+      }
     }
 
     function commit(config){
       var message = grunt.template.process(commitMessage, templateOptions);
-      run('git commit '+ config.file +' -m "'+ message +'"', config.file + ' committed');
+      var files = config.files.join(' ');
+      run('git commit '+ files +' -m "'+ message +'"', 'Committed: ' + files);
     }
 
     function tag(config){
@@ -86,7 +103,9 @@ module.exports = function(grunt){
     }
 
     function bump(config){
-      grunt.file.write(config.file, JSON.stringify(config.pkg, null, '  ') + '\n');
+      for (var file in config.files) {
+        grunt.file.write(file, JSON.stringify(config.files[file], null, '  ') + '\n');
+      }
       grunt.log.ok('Version bumped to ' + config.newVersion);
     }
 
