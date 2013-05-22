@@ -44,14 +44,16 @@ module.exports = function(grunt){
     if (options.pushTags) pushTags(config);
     if (options.npm) publish(config);
 
-    function setup(file, files, type){
+    function setup(files, type){
       var map = {};
+      var list = [];
       var newVersion;
       files.forEach(function(file) {
         try {
           var json = grunt.file.readJSON(file);
           if (json) {
             map[file] = json;
+            list.push(file);
             json.version = semver.inc(json.version, type || 'patch');
             if (!newVersion) newVersion = json.version;
           }
@@ -59,7 +61,7 @@ module.exports = function(grunt){
           grunt.log.writeln('Did not find "'+file+'".');
         }
       });
-      return {files: map, newVersion: newVersion};
+      return {fileNames: list, files: map, newVersion: newVersion};
     }
 
     function add(config){
@@ -70,7 +72,7 @@ module.exports = function(grunt){
 
     function commit(config){
       var message = grunt.template.process(commitMessage, templateOptions);
-      var files = config.files.join(' ');
+      var files = config.fileNames.join(' ');
       run('git commit '+ files +' -m "'+ message +'"', 'Committed: ' + files);
     }
 
